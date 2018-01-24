@@ -1,0 +1,66 @@
+1. Rebuilding Kernel for USB Gadget Device 
+    
+   Host (X-86)
+  --------------------------------------
+ | Host-Side | Generic USB | USB Host   |
+ | Operating | Storage     | Controller |USB 2.o/3.o    
+ | System    | Driver      | Driver     |<-------
+ |           |             | and        |        |  
+ |           |             | USB Stack  |        | 
+  --------------------------------------         |
+                                                 |  
+                                                 | USB Cable ( USB OTG cable)
+                                                 |
+  Begalbone black                                |
+  --------------------------------------         |
+ |             |           | USB Periph.|        |
+ | Device-Side | USB Gadget| Controller |        |
+ | Operating   | File      | Driver     |<-------
+ | System      | Storage   | and        |OTB Port 
+ | (Linux)     | Driver    | USB Stack  |
+  --------------------------------------
+		Setup digram 
+
+ Device  Driver ->   [*] USB support  ---> {M}   Support for Host-side USB
+					   	[*]     OTG support
+					   	[*]     Rely on OTG and EH Targeted Peripherals List
+					   	-----
+					   	<M>   Inventra Highspeed Dual Role Controller (TI, ADI, AW, ...)                                                             
+                                                                MUSB Mode Selection (Dual Role mode)  ---> 
+						 		*** Platform Glue Layer *** 
+								 < >     TUSB6010                          
+    								 < >     OMAP2430 and onwards              
+    							         < >     AM35x                             
+    								 <M>     TI81XX 
+						 <M>   USB Gadget Support  --->
+							<M> USB Gadget Drivers
+       							<M> File-backed Storage Gadget
+
+2.Boot with compiled kernel and load bellow mentioned Driver on begalbone black for USB UDC support. 
+	modprobe musb_dsps                    
+	Note :  musb_dsps is dependent on musb_hdrc driver. 
+	modprobe musb_am335x
+	modprobe libcomposite     //Gadget driver 
+
+3.Compile Driver sources and load one after another on BBB (BegalBone BLACK) and on Host 
+   On BBB: 
+	insmod led.ko
+	insmod mslave.ko
+   On Host: 
+   	insmod  utest_slave.ko
+Note : Please remove default driver (i.e usbtest) from host before loading  utest_slave.ko.
+
+4. Testing and use case :
+    
+   For LED on : 
+   	echo 1 > /sys/USB_TEST/usbled
+   Result : Led should glow.
+   For LED Off: 
+   	echo 0 > /sys/USB_TEST/usbled
+   Result: Led should off.
+
+Note : For more info, mail me at beingchandanjha@gmail.com.
+
+
+
+         
